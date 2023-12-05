@@ -26,7 +26,23 @@ public class UserHandlerExceptionResolver implements HandlerExceptionResolver {
                 String acceptHeader = request.getHeader("accept");
                 response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
 
+                if (acceptHeader.equals("application/json")) {
+                    Map<String, Object> errorResult = new HashMap<>();
+                    errorResult.put("ex", ex.getClass());
+                    errorResult.put("message", ex.getMessage());
 
+                    String result = objectMapper.writeValueAsString(errorResult);
+
+                    response.setContentType("application/json");
+                    response.setCharacterEncoding("utf-8");
+                    response.getWriter().write(result);
+
+                    // 예외를 먹어버리고 정상 흐름으로 return
+                    return new ModelAndView();
+                }else {
+                    // TEXT/HTML
+                    return new ModelAndView("error/500");
+                }
             }
         } catch (IOException e) {
             log.error("resolver ex", e);
